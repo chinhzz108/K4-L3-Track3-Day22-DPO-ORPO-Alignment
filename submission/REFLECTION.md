@@ -4,13 +4,13 @@
 - **Mã học viên:** 2A202602720
 - **Khoá:** K4 · Track 3
 - **Tier:** Kaggle T4 × 2 được cấp; mô hình được chạy trên `cuda:0`
-- **Ngày:** 2026-10-08
+- **Ngày cập nhật:** 2026-10-09 (phiên train bắt đầu 2026-10-08)
 
-> Số liệu DPO bên dưới được chép từ log của phiên Kaggle hoàn tất NB3. Notebook dừng ở bước lưu `dpo_metrics.json`: runner dùng tên `result` cho `shell.run_cell(...)`, ghi đè kết quả `trainer.train()`. Vì vậy file metrics và gói kết quả chưa được tạo. NB4 chưa chạy; các ô không có kết quả được ghi rõ, không ước lượng.
+> Metrics DPO được khôi phục từ log Kaggle và ghi vào `dpo_metrics.json` trong phiên chạy. Runner ban đầu dùng `result` cho `shell.run_cell(...)`, ghi đè kết quả `trainer.train()`; mình đã chạy lại riêng bước ghi metrics mà không train lại. Sau đó Kaggle kết thúc phiên với `unknown error, status code 64` trong lúc NB4 đang sinh câu trả lời. Vì thế không có zip, side-by-side hay judge summary để tải; các ô thiếu số liệu được ghi rõ, không ước lượng.
 
 ## Trạng thái
 
-NB0–NB3 đã chạy. NB0 xác nhận custom DPO loss khởi tạo ở 0.6931 (log 2). NB1 hoàn tất SFT. NB2 lọc và chia dữ liệu preference thành 800 cặp train, 100 cặp held-out theo prompt không trùng nhau. NB3 hoàn tất 100/100 bước DPO và đánh giá held-out cuối. NB4 (sinh câu trả lời và chấm bằng reward model), đóng gói zip và các bonus chưa hoàn tất.
+NB0–NB3 đã chạy. NB0 xác nhận custom DPO loss khởi tạo ở 0.6931 (log 2). NB1 hoàn tất SFT. NB2 lọc và chia dữ liệu preference thành 800 cặp train, 100 cặp held-out theo prompt không trùng nhau. NB3 hoàn tất 100/100 bước DPO và đánh giá held-out cuối. NB4 đã bắt đầu sinh câu trả lời cho 8 prompt cố định và 50 prompt held-out; phiên Kaggle bị ngắt trước khi lưu kết quả chấm. Zip kết quả chưa được tạo; các bonus chưa chạy.
 
 ## 1. Cấu hình
 
@@ -31,6 +31,7 @@ NB0–NB3 đã chạy. NB0 xác nhận custom DPO loss khởi tạo ở 0.6931 (
 |---|---:|
 | Thời gian NB3 | Log ghi 23:06 cho 100 bước train; tiến trình hoàn tất đánh giá cuối ở 24:16. |
 | Training loss cuối | 0.6734; loss đầu tiên được log là 0.6931258. |
+| Reward gap cuối trên train | 0.099793 (chosen 0.431535 − rejected 0.331742). |
 | Reward chosen cuối trên held-out | 0.443373 |
 | Reward rejected cuối trên held-out | 0.353932 |
 | Reward margin cuối trên held-out | 0.089441 |
@@ -41,11 +42,11 @@ NB0–NB3 đã chạy. NB0 xác nhận custom DPO loss khởi tạo ở 0.6931 (
 
 ## 3. Đọc đường reward
 
-Ở lần đánh giá held-out cuối, reward của chosen là 0.443373 và của rejected là 0.353932, tạo margin dương 0.089441; reward accuracy là 0.730. Bộ chẩn đoán lấy trung bình ba điểm đánh giá cuối và báo chosen +0.435, rejected +0.347, margin +0.088, nên cả hai loại câu trả lời đều nhận reward cao hơn mốc tham chiếu nhưng chosen tăng nhiều hơn. Đây phù hợp với nhãn `INTENDED`: mô hình phân biệt chosen tốt hơn rejected. Nó không giống likelihood displacement, vốn có chosen reward âm trong khi rejected giảm nhanh hơn. Tuy nhiên, reward accuracy chỉ đo mức nhất quán với reward model trên held-out, không chứng minh người dùng sẽ thích câu trả lời hơn. Dù NB2 đã tách prompt, mình chưa kết luận về overfit vì runner lỗi trước khi xuất gói kết quả và chưa đối chiếu đầy đủ đường train với held-out trong báo cáo. Cũng chưa thể kiểm tra hiệu ứng độ dài: chosen dài hơn ở 65,9% cặp preference, còn độ dài câu trả lời SFT/DPO chưa được sinh và so sánh ở NB4.
+Reward gap cuối trên train là 0.099793 (chosen 0.431535, rejected 0.331742); trên held-out gap là 0.089441 (chosen 0.443373, rejected 0.353932) và accuracy là 0.730. Chênh lệch gap train-held-out khoảng 0.01035, khá nhỏ trong log cuối nhưng chưa đủ để khẳng định không overfit. Bộ chẩn đoán lấy trung bình ba điểm eval cuối và báo chosen +0.435, rejected +0.347, margin +0.088: cả hai reward đều tăng so với mốc tham chiếu, nhưng chosen tăng nhiều hơn. Đây phù hợp nhãn `INTENDED`, không giống likelihood displacement vốn có chosen reward âm trong khi rejected giảm nhanh hơn. Dù NB2 đã tách prompt, cần xem trọn đường train và held-out trước khi kết luận về generalization. Reward accuracy đo độ nhất quán với reward model, không chứng minh người dùng sẽ thích câu trả lời hơn. Cũng chưa thể kiểm tra hiệu ứng độ dài: chosen dài hơn ở 65,9% cặp preference, còn NB4 chưa sinh đủ câu trả lời SFT/DPO để so sánh độ dài.
 
 ## 4. So sánh SFT và SFT+DPO
 
-NB4 chưa thực thi. Runner dừng khi lưu metrics sau NB3 với lỗi `AttributeError: 'ExecutionResult' object has no attribute 'training_loss'`: vòng lặp bootstrap đặt kết quả `shell.run_cell(...)` vào biến `result`, làm ghi đè biến kết quả huấn luyện cùng tên. Do đó chưa có 8 prompt cố định, 50 câu trả lời held-out, `side_by_side.jsonl`, `judge_summary.json`, sanity accuracy, win rate, khoảng tin cậy, position consistency, score-length Spearman hay ví dụ hữu ích/an toàn. Không có kết luận DPO thắng SFT ở phần đánh giá này.
+Runner lỗi ban đầu đã được khắc phục trong phiên bằng cách cô lập biến nhận kết quả `shell.run_cell(...)` và ghi metrics từ log train. NB4 sau đó nạp được mô hình SFT và bắt đầu sinh cho 8 prompt cố định + 50 held-out, nhưng phiên Kaggle kết thúc với `unknown error, status code 64` sau cảnh báo bảo trì. Không có `side_by_side.jsonl`, `judge_summary.json`, sanity accuracy, win rate, khoảng tin cậy, position consistency, score-length Spearman hay ví dụ hữu ích/an toàn để báo cáo. Vì vậy chưa thể kết luận DPO thắng SFT.
 
 | Nhóm | n | DPO thắng | SFT thắng | Hoà | Win rate / CI 95% | Cặp dài gần bằng nhau | Câu dài hơn thắng |
 |---|---:|---:|---:|---:|---|---:|---:|
@@ -59,7 +60,7 @@ NB4 chưa thực thi. Runner dừng khi lưu metrics sau NB3 với lỗi `Attrib
 
 ## 6. Một quyết định quan trọng nhất
 
-Quyết định quan trọng nhất là dùng LoRA trên Kaggle T4 với 800 cặp preference để train và giữ riêng 100 cặp held-out theo prompt. Phương án thay thế là full fine-tuning hoặc xin tier GPU lớn hơn. Với mô hình 4B và bộ nhớ T4, LoRA giảm số tham số cần cập nhật; cấu hình thực tế đã chạy trên `cuda:0`, trong khi vẫn giữ được tập held-out độc lập để theo dõi reward. Kết quả xác nhận pipeline SFT và DPO có thể chạy hết phần train: SFT dùng 1.000 mẫu trong 125 bước với loss cuối 1.3603; DPO dùng β=0.1, learning rate 5e-6, chiều dài tối đa 768 và hoàn thành 100 bước. Held-out reward accuracy đạt 0.730 với margin cuối 0.089441, còn chẩn đoán trên ba lần eval cuối là `INTENDED`. Điều mình chú ý là reward của rejected cũng tăng (+0.347 theo chẩn đoán), thay vì giảm; DPO cải thiện khoảng cách chủ yếu vì chosen được reward cao hơn. Đây mới là kết quả theo reward model, chưa phải bằng chứng chất lượng đối thoại tăng, vì runner lỗi khiến NB4 chưa chạy. Nếu làm lại, mình sẽ sửa bootstrap để tên biến kết quả cell không đè `result` của notebook, ghi metrics ngay sau train và chạy NB4 trước khi thử bonus. Sau đó mới đánh giá độ dài và độ tin cậy của hai reward model trên tiếng Việt.
+Quyết định quan trọng nhất là dùng LoRA trên Kaggle T4 với 800 cặp preference để train và giữ riêng 100 cặp held-out theo prompt. Phương án thay thế là full fine-tuning hoặc xin tier GPU lớn hơn. Với mô hình 4B và bộ nhớ T4, LoRA giảm số tham số cần cập nhật; cấu hình thực tế đã chạy trên `cuda:0`, trong khi vẫn giữ được tập held-out độc lập để theo dõi reward. Kết quả xác nhận pipeline train SFT và DPO chạy hết: SFT dùng 1.000 mẫu trong 125 bước với loss cuối 1.3603; DPO dùng β=0.1, learning rate 5e-6, max length 768 và hoàn thành 100 bước. Held-out reward accuracy là 0.730, margin cuối 0.089441; chẩn đoán trên ba lần eval cuối là `INTENDED`. Điều mình chú ý là reward của rejected cũng tăng (+0.347 theo chẩn đoán), thay vì giảm; margin tăng vì chosen nhận reward cao hơn. Đây là kết quả theo reward model, chưa chứng minh chất lượng đối thoại tăng. Lỗi ghi metrics ban đầu được xử lý mà không train lại, nhưng Kaggle gặp lỗi phiên trong lúc NB4 sinh câu trả lời nên chưa có đánh giá SFT/DPO hoặc sanity check của hai reward model. Nếu làm lại, mình sẽ để runner dùng biến kết quả riêng, lưu adapter và metrics thành artifact ngay sau NB3, rồi mới chạy NB4. Nếu phiên bị ngắt lần nữa, có thể tiếp tục từ artifacts đã tải thay vì train lại. Sau khi có judge results, mình sẽ xem win rate, độ dài và độ nhất quán tiếng Việt trước khi thử bonus.
 
 ## 7. Bộ đo chuẩn (bonus NB6)
 

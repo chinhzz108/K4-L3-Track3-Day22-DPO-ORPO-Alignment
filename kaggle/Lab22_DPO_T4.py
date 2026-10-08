@@ -2106,3 +2106,5 @@ with ZipFile(archive_path, "w", compression=ZIP_DEFLATED) as archive:
         "submission/REFLECTION.md after reviewing them.\n",
     )
 print(f"Ready to download: {archive_path} ({archive_path.stat().st_size / 1e6:.1f} MB)")
+from IPython.display import FileLink, display
+display(FileLink(str(archive_path)))

@@ -82,7 +82,9 @@ with ZipFile(archive_path, "w", compression=ZIP_DEFLATED) as archive:
         "model and adapter weight files are excluded. Copy the real metrics into "
         "submission/REFLECTION.md after reviewing them.\\n",
     )
-print(f"Ready to download: {{archive_path}} ({{archive_path.stat().st_size / 1e6:.1f}} MB)")'''
+print(f"Ready to download: {{archive_path}} ({{archive_path.stat().st_size / 1e6:.1f}} MB)")
+from IPython.display import FileLink, display
+display(FileLink(str(archive_path)))'''
 
 
 def percent_source(notebook: dict) -> str:

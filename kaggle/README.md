@@ -11,3 +11,5 @@
 
 Nếu thay đổi `notebooks/*.py` hoặc `lab22/*.py`, chạy `python scripts/build_kaggle.py` để tạo lại
 notebook. Chạy `python scripts/build_kaggle.py --check` để kiểm tra notebook có đồng bộ với mã nguồn không.
+
+Nếu dùng bootstrap Python để chạy notebook cell-by-cell, giữ kết quả `shell.run_cell(...)` trong biến riêng như `_cell_result`; không đặt vào `result`, vì cell train DPO dùng tên này cho metrics của trainer.
