@@ -135,6 +135,9 @@ def render(tier: str) -> dict:
             cells.append(code(RELEASE_GPU))
         cells.append(md(f"---\n# ⏵ `notebooks/{stem}.py` ({kind})"))
         cells.extend(percent_cells(REPO / "notebooks" / f"{stem}.py"))
+    for index, cell in enumerate(cells):
+        # nbformat 4.5 requires a stable, unique id on every cell.
+        cell["id"] = f"lab22-{index:03d}"
     return {
         "cells": cells,
         "metadata": {

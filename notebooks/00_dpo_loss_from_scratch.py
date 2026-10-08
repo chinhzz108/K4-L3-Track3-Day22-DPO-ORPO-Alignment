@@ -59,8 +59,8 @@ print(f"sum log p = {total.item():.3f}   mean log p = {mean.item():.3f}")
 # %%
 def my_dpo_loss(pc, pr, rc, rr, beta=0.1):
     """pc/pr: policy log-prob chosen/rejected; rc/rr: reference. Trả về loss trung bình."""
-    # TODO: viết bằng torch.nn.functional.logsigmoid
-    return None
+    margin = beta * ((pc - rc) - (pr - rr))
+    return -torch.nn.functional.logsigmoid(margin).mean()
 
 
 # %%
@@ -114,6 +114,8 @@ for name, (pc_, pr_) in scenarios.items():
     print(f"{name:28s} loss {loss.item():.3f}  reward chosen {cr.item():+.1f}  rejected {rj.item():+.1f}")
 
 # %% [markdown]
+# **Trả lời:** DPO tối ưu chênh lệch tương đối giữa hai câu trả lời, không ép xác suất tuyệt đối của `chosen` phải tăng. Nếu log-prob của `chosen` giảm 3 nat còn `rejected` giảm 5 nat so với reference, margin vẫn tăng `2β`; loss giảm dù mô hình đang gán xác suất thấp hơn cho cả hai câu. Khi `rejected` giảm nhanh hơn, phần thưởng ngầm của nó giảm nhiều hơn và DPO vẫn xem cặp này là tiến bộ.
+#
 # **RPO** thêm NLL của câu chosen vào loss: kịch bản B bị phạt vì chosen bị đẩy xuống.
 
 # %%

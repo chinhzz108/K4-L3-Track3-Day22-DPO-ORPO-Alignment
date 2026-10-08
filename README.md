@@ -38,7 +38,22 @@ Việt để huấn luyện và 100 cặp để kiểm tra.
 
 ---
 
-## 1. Chuẩn bị (Colab, không cần cài gì)
+## 1. Chuẩn bị (Kaggle hoặc Colab)
+
+### Kaggle (T4)
+
+1. Tải [`kaggle/Lab22_DPO_T4.ipynb`](kaggle/Lab22_DPO_T4.ipynb) lên Kaggle Notebooks.
+2. Chọn GPU T4 (T4×2 cũng được; notebook chỉ dùng GPU 0) và bật **Internet** để cài thư viện,
+   tải mô hình và dữ liệu.
+3. Chạy tất cả cell từ trên xuống đến NB4. Cell cuối tạo `/kaggle/working/lab22-results.zip` gồm
+   ảnh, dữ liệu chia tập và số liệu eval; file trọng số mô hình không nằm trong zip.
+4. Tải zip về, giải nén vào thư mục repo này, rồi điền `submission/REFLECTION.md` bằng số liệu thật.
+
+Notebook Kaggle được tạo từ `notebooks/*.py` và `lab22/*.py`; chạy `python scripts/build_kaggle.py`
+sau khi sửa mã nguồn để tạo lại notebook. Nếu Kaggle không nhập được `.ipynb`, dùng bản Jupytext
+[`kaggle/Lab22_DPO_T4.py`](kaggle/Lab22_DPO_T4.py) qua **File → Import Notebook**.
+
+### Colab (không cần cài gì)
 
 1. Tải file [`colab/Lab22_DPO_T4.ipynb`](colab/Lab22_DPO_T4.ipynb) về máy, rồi mở [Google Colab](https://colab.research.google.com)
    → **Tệp → Tải sổ tay lên** → chọn file vừa tải.

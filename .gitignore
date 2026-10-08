@@ -14,7 +14,12 @@ __pycache__/
 
 # Lab artifacts: weights stay local. The small evidence files below ARE committed,
 # because the auto-grader reads only what is in the repo.
-models/
+# Keep model weights out of GitHub, but commit the small model config required
+# by the submission verifier.
+models/*
+!models/sft-merged/
+models/sft-merged/*
+!models/sft-merged/config.json
 adapters/*
 !adapters/.gitkeep
 !adapters/*/
